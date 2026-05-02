@@ -43,7 +43,7 @@ crashradar/
 ## Quickstart
 
 ```bash
-git clone https://github.com/<your-username>/crashradar.git
+git clone https://github.com/devaaldo/crashradar.git
 cd crashradar
 pip install -r requirements.txt
 jupyter notebook notebooks/crashradar.ipynb
