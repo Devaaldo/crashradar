@@ -18,6 +18,8 @@ CrashRadar does not predict prices. It assigns a crash probability score to each
 | Label | Min forward return < -10% |
 | Features | 8 OHLCV-derived technical indicators |
 | Explainability | SHAP TreeExplainer |
+| Default ticker | BBCA.JK (Bank Central Asia) |
+| Data window | 10 years (~2,460 trading days) |
 
 ---
 
@@ -49,7 +51,7 @@ jupyter notebook notebooks/crashradar.ipynb
 
 Run all cells top to bottom. The notebook fetches data, trains the model, evaluates it, and produces a real-time signal for the latest available trading day.
 
-To analyze a different IDX stock, change `TICKER` in the **Configuration** cell.
+To analyze a different IDX stock, change `TICKER` in the **Configuration** cell (e.g. `"BBRI.JK"`, `"TLKM.JK"`).
 
 ---
 
@@ -76,22 +78,32 @@ Each run produces six figures saved to `outputs/figures/`:
 |---|---|
 | `01_crash_labels.png` | Price chart with crash warning days and return distribution |
 | `02_feature_correlation.png` | Feature correlation heatmap |
-| `03_model_evaluation.png` | Confusion matrix, ROC curve, Precision-Recall curve |
+| `03_model_evaluation.png` | Confusion matrix, ROC curve, predicted probability distribution |
 | `04_shap_importance.png` | Global feature importance (mean absolute SHAP) |
 | `05_shap_beeswarm.png` | SHAP value distribution per feature |
 | `06_shap_waterfall_latest.png` | Per-prediction SHAP waterfall for the latest trading day |
+
+Trained model artifacts are saved to `outputs/models/` in both `.json` (XGBoost native) and `.pkl` (joblib) formats.
+
+---
+
+## Evaluation Note
+
+Crash events are rare by definition (~0.6% of trading days for BBCA.JK over 10 years). With a chronological 80/20 split, it is possible that all crash events fall within the training window, leaving the test set with no positive labels. In that case, ROC-AUC and PR-AUC are reported as N/A, and the evaluation panel shows the predicted probability distribution instead of the ROC curve. This is a known limitation of evaluating rare-event classifiers on short out-of-sample periods.
 
 ---
 
 ## Kernel Restart Recovery
 
-If the kernel restarts mid-session, run only the **Kernel Restart Recovery** cell. It reloads the saved model and feature dataset from `outputs/` and reconstructs the train/test splits — no re-download or re-training required.
+If the kernel restarts mid-session, run only the **Kernel Restart Recovery** cell. It reloads the saved model and feature dataset from `outputs/` and reconstructs the train/test splits without re-downloading or re-training.
 
 ---
 
 ## Requirements
 
-See [requirements.txt](requirements.txt). Core dependencies:
+See [requirements.txt](requirements.txt). Python 3.11+ recommended.
+
+Core dependencies:
 
 - `yfinance` — market data ingestion
 - `xgboost` — gradient boosted tree classifier
@@ -99,9 +111,8 @@ See [requirements.txt](requirements.txt). Core dependencies:
 - `scikit-learn` — metrics and evaluation
 - `pandas`, `numpy`, `matplotlib`, `seaborn` — data processing and visualization
 - `joblib`, `pyarrow` — model and data serialization
-- `pandas-ta` — optional, used for RSI calculation if available
-
-Python 3.10+ recommended.
+- `jupyter`, `notebook`, `ipywidgets` — notebook environment
+- `pandas-ta` — optional; used for RSI if available, falls back to manual calculation on Python 3.11+
 
 ---
 
